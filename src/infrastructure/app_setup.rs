@@ -1,6 +1,7 @@
 use std::error::Error;
 
-use actix_web::{App, HttpResponse, HttpServer, Responder, web};
+use actix_files::Files;
+use actix_web::{App, HttpServer, web};
 
 use crate::{
     config::Config,
@@ -27,7 +28,7 @@ pub async fn server(config: Config) -> Result<(), Box<dyn Error>> {
         let keycloak_auth = connect_keyclock();
         App::new()
             .app_data(app_state.clone())
-            .service(web::resource("/").to(index))
+            .service(Files::new("/", "./src/templates").index_file("callback.html")) // Указан правильный путь
             .service(login)
             .service(callback)
             .service(
@@ -41,9 +42,4 @@ pub async fn server(config: Config) -> Result<(), Box<dyn Error>> {
     .await?;
 
     Ok(())
-}
-async fn index() -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .body(include_str!("../templates/callback.html"))
 }
