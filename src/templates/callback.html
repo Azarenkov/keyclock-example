@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Перенаправление...</title>
+    </head>
+    <body>
+        <p>Ваш JWT токен: {{TOKEN}}</p>
+        <script>
+            window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname,
+            );
+
+            function getCookie(name) {
+                const value = "; " + document.cookie;
+                const parts = value.split("; " + name + "=");
+                if (parts.length === 2) return parts.pop().split(";").shift();
+            }
+
+            const token = getCookie("access_token");
+
+            if (token) {
+                fetch("/api/v1/protected", {
+                    method: "GET",
+                    headers: {
+                        Authorization: "Bearer " + token,
+                    },
+                })
+                    .then((response) => response.text())
+                    .then((data) => {
+                        document.body.innerHTML += "<hr>" + data;
+                    })
+                    .catch((error) => {
+                        document.body.innerHTML +=
+                            "<hr>" +
+                            "Ошибка при получении защищённого ресурса: " +
+                            error;
+                    });
+            } else {
+                document.body.innerHTML +=
+                    "<hr>" + "Cookie access_token не найден.";
+            }
+        </script>
+    </body>
+</html>
