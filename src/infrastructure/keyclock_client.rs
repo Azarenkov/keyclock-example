@@ -43,7 +43,11 @@ impl<'a> KeyclockClient {
             ("redirect_uri", &self.config.redirect_uri),
         ];
 
+        println!("{}", token_url);
+        println!("{:?}", form_data);
+
         let token_response = self.client.post(&token_url).form(&form_data).send().await;
+        println!("{:?}", token_response);
 
         match token_response {
             Ok(response) => {
