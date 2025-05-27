@@ -44,7 +44,7 @@ async fn callback(
     match keyclock_request {
         Ok(tokens) => {
             let mut response = HttpResponse::Found()
-                .append_header((header::LOCATION, "/"))
+                .append_header((header::LOCATION, "/callback.html"))
                 .finish();
 
             let cookie = Cookie::build("access_token", tokens.access_token.clone())
