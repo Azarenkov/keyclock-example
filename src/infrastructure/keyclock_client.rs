@@ -18,10 +18,13 @@ pub struct KeyclockClient {
     pub config: Config,
 }
 
-impl<'a> KeyclockClient {
+impl KeyclockClient {
     pub fn new(config: Config) -> Self {
         Self {
-            client: Client::builder().build().unwrap(),
+            client: Client::builder()
+                .danger_accept_invalid_certs(true)
+                .build()
+                .expect("Error create client"),
             config,
         }
     }
@@ -53,22 +56,22 @@ impl<'a> KeyclockClient {
             Ok(response) => {
                 if response.status().is_success() {
                     match response.json::<TokenResponse>().await {
-                        Ok(tokens) => return Ok(tokens),
+                        Ok(tokens) => Ok(tokens),
                         Err(e) => {
                             println!("Ошибка парсинга токенов: {}.", e);
-                            return Err(e.into());
+                            Err(e.into())
                         }
                     }
                 } else {
                     let error_text = response.text().await.unwrap_or_default();
                     println!("Ошибка получения токенов: {}", error_text);
 
-                    return Err("error_text".into());
+                    Err("error_text".into())
                 }
             }
             Err(e) => {
                 println!("Ошибка запроса токенов: {}", e);
-                return Err(e.into());
+                Err(e.into())
             }
         }
     }
