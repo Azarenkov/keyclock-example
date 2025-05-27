@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use actix_files::Files;
-use actix_web::{App, HttpServer, web};
+use actix_web::{App, HttpServer, middleware::Logger, web};
 
 use crate::{
     config::Config,
@@ -27,8 +27,9 @@ pub async fn server(config: Config) -> Result<(), Box<dyn Error>> {
     HttpServer::new(move || {
         let keycloak_auth = connect_keyclock();
         App::new()
+            .wrap(Logger::default())
             .app_data(app_state.clone())
-            .service(Files::new("/", "./src/templates").index_file("callback.html")) // Указан правильный путь
+            .service(Files::new("/", "./src/templates").index_file("callback.html"))
             .service(login)
             .service(callback)
             .service(
