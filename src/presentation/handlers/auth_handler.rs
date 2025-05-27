@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder, get, web};
+use actix_web::{HttpResponse, Responder, cookie::Cookie, get, http::header, web};
 use serde::Deserialize;
 use urlencoding::encode;
 
@@ -43,19 +43,19 @@ async fn callback(
 
     match keyclock_request {
         Ok(tokens) => {
-            let access_token =
-                actix_web::cookie::Cookie::build("access_token", &tokens.access_token)
-                    .path("/")
-                    .http_only(false)
-                    .finish();
+            let mut response = HttpResponse::Found()
+                .append_header((header::LOCATION, "/"))
+                .finish();
 
-            let template = include_str!("../../templates/callback.html");
-            let html = template.replace("{{TOKEN}}", &tokens.access_token);
+            let cookie = Cookie::build("access_token", tokens.access_token.clone())
+                .http_only(true)
+                .secure(true)
+                .path("/")
+                .finish();
 
-            HttpResponse::Ok()
-                .cookie(access_token)
-                .content_type("text/html; charset=UTF-8")
-                .body(html)
+            response.add_cookie(&cookie).unwrap();
+
+            response
         }
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
