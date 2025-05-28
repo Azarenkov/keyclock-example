@@ -46,7 +46,8 @@
                 const logoutButton = document.createElement("button");
                 logoutButton.textContent = "Logout";
                 logoutButton.style.marginTop = "20px";
-                logoutButton.onclick = () => {
+
+                logoutButton.addEventListener("click", () => {
                     fetch("/api/v1/logout", {
                         method: "POST",
                         headers: {
@@ -59,6 +60,8 @@
                                     "<hr>Вы успешно вышли из системы.";
                                 document.cookie =
                                     "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                                // Redirect to /login after successful logout
+                                window.location.href = "/login";
                             } else {
                                 response.text().then((text) => {
                                     document.body.innerHTML +=
@@ -70,7 +73,8 @@
                             document.body.innerHTML +=
                                 "<hr>Ошибка при выходе: " + error;
                         });
-                };
+                });
+
                 document.body.appendChild(logoutButton);
             } else {
                 document.body.innerHTML +=
