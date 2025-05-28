@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, HttpResponse, Responder, get, http::header, web};
+use actix_web::{HttpRequest, HttpResponse, Responder, get, http::header, post, web};
 
 use crate::presentation::shared::app_state::AppState;
 
@@ -11,7 +11,7 @@ async fn protected() -> impl Responder {
     HttpResponse::Ok().body("Доступ к защищённому ресурсу получен!")
 }
 
-#[get("/logout")]
+#[post("/logout")]
 pub async fn logout(app_state: web::Data<AppState>, req: HttpRequest) -> impl Responder {
     let auth_header = req.headers().get(header::AUTHORIZATION);
 
