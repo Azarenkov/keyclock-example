@@ -1,3 +1,9 @@
+[![Rust](https://img.shields.io/badge/Rust-%23000000.svg?e&logo=rust&logoColor=blue)](#)
+[![Keycloak](https://img.shields.io/badge/Keycloak-4D4D4D?logo=keycloak&logoColor=fff&style=flat)](#)
+[![Json Web Tokens](https://img.shields.io/badge/json%20web%20tokens-323330?logo=json-web-tokens&logoColor=pink)](#)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff)](#)
+[![Git](https://img.shields.io/badge/Git-F05032?logo=git&logoColor=fff)](#)
+
 # Keycloak Integration Example
 
 This project demonstrates integration with Keycloak for authentication and authorization using Rust and Actix-web framework.
