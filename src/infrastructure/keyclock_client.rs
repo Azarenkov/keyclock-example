@@ -71,4 +71,23 @@ impl KeyclockClient {
             }
         }
     }
+
+    pub async fn send_logout_request(&self, token: &str) -> Result<(), Box<dyn Error>> {
+        let url = format!(
+            "{}/realms/{}/protocol/openid-connect/logout",
+            self.config.keyclock_base_url, self.config.keyclock_realm
+        );
+        let response = self
+            .client
+            .post(&url)
+            .form(&[("token", token)])
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            Err("Error logout".into())
+        }
+    }
 }
