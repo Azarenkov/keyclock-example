@@ -1,125 +1,47 @@
 <!doctype html>
 <html>
     <head>
-        <title>Тест выхода</title>
+        <meta charset="UTF-8" />
+        <title>Page</title>
     </head>
     <body>
-        <h1>Тестовая страница для проверки выхода</h1>
-        <p>Текущий токен в cookie: <span id="token-display"></span></p>
-
-        <button id="test-button">Тестовая кнопка (для проверки JS)</button>
-        <br /><br />
-
-        <button id="simple-logout">
-            Простой выход (только очистка cookie)
-        </button>
-        <br /><br />
-
-        <button id="fetch-logout">Выход через fetch</button>
-        <br /><br />
-
-        <div id="result"></div>
-
+        <p>Ваш JWT токен: {{TOKEN}}</p>
         <script>
-            // Отображаем текущий токен
-            const tokenSpan = document.getElementById("token-display");
+            window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname,
+            );
 
             function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
+                const value = "; " + document.cookie;
+                const parts = value.split("; " + name + "=");
                 if (parts.length === 2) return parts.pop().split(";").shift();
-                return null;
             }
 
-            function updateTokenDisplay() {
-                const token = getCookie("access_token");
-                tokenSpan.textContent = token
-                    ? token.substring(0, 20) + "..."
-                    : "не найден";
+            const token = getCookie("access_token");
+
+            if (token) {
+                fetch("/api/v1/protected", {
+                    method: "GET",
+                    headers: {
+                        Authorization: "Bearer " + token,
+                    },
+                })
+                    .then((response) => response.text())
+                    .then((data) => {
+                        document.body.innerHTML += "<hr>" + data;
+                    })
+                    .catch((error) => {
+                        document.body.innerHTML +=
+                            "<hr>" +
+                            "Ошибка при получении защищённого ресурса: " +
+                            error;
+                    });
+            } else {
+                document.body.innerHTML +=
+                    "<hr>" + "Cookie access_token не найден.";
             }
-
-            // Тестовая кнопка для проверки JS
-            document
-                .getElementById("test-button")
-                .addEventListener("click", function () {
-                    console.log("Тестовая кнопка нажата");
-                    document.getElementById("result").innerHTML +=
-                        "<p>Тестовая кнопка работает</p>";
-                    alert("Тестовая кнопка работает!");
-                });
-
-            // Простая кнопка выхода (только очистка cookie)
-            document
-                .getElementById("simple-logout")
-                .addEventListener("click", function () {
-                    console.log("Кнопка простого выхода нажата");
-                    document.getElementById("result").innerHTML +=
-                        "<p>Выполняется простой выход...</p>";
-
-                    // Очищаем cookie
-                    document.cookie =
-                        "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-
-                    updateTokenDisplay();
-                    document.getElementById("result").innerHTML +=
-                        '<p>Cookie очищен. <a href="/login">Перейти на логин</a></p>';
-                });
-
-            // Кнопка выхода через fetch
-            document
-                .getElementById("fetch-logout")
-                .addEventListener("click", function () {
-                    console.log("Кнопка fetch-выхода нажата");
-                    document.getElementById("result").innerHTML +=
-                        "<p>Выполняется выход через fetch...</p>";
-
-                    const token = getCookie("access_token");
-                    if (!token) {
-                        document.getElementById("result").innerHTML +=
-                            "<p>Ошибка: Токен не найден</p>";
-                        return;
-                    }
-
-                    // Используем XMLHttpRequest вместо fetch
-                    const xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/api/v1/logout", true);
-                    xhr.setRequestHeader("Authorization", "Bearer " + token);
-                    xhr.setRequestHeader("Content-Type", "application/json");
-
-                    xhr.onload = function () {
-                        if (xhr.status === 200) {
-                            document.getElementById("result").innerHTML +=
-                                "<p>Выход успешен!</p>";
-                        } else {
-                            document.getElementById("result").innerHTML +=
-                                "<p>Ошибка: " +
-                                xhr.status +
-                                " " +
-                                xhr.statusText +
-                                "</p>";
-                        }
-
-                        // В любом случае очищаем cookie
-                        document.cookie =
-                            "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                        updateTokenDisplay();
-                    };
-
-                    xhr.onerror = function () {
-                        document.getElementById("result").innerHTML +=
-                            "<p>Ошибка запроса: " + xhr.statusText + "</p>";
-
-                        // Очищаем cookie
-                        document.cookie =
-                            "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                        updateTokenDisplay();
-                    };
-
-                    xhr.send();
-                });
-
-            // Инициализация
-            updateTokenDisplay();
         </script>
     </body>
 </html>
