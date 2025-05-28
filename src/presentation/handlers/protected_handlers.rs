@@ -16,8 +16,15 @@ pub async fn logout(app_state: web::Data<AppState>, req: HttpRequest) -> impl Re
     let auth_header = req.headers().get(header::AUTHORIZATION);
 
     match auth_header {
-        Some(access_token) => {
-            let access_token = access_token.to_str().unwrap_or("");
+        Some(auth_value) => {
+            let auth_str = auth_value.to_str().unwrap_or("");
+
+            let access_token = if let Some(token) = auth_str.strip_prefix("Bearer ") {
+                token
+            } else {
+                return HttpResponse::BadRequest()
+                    .body("Invalid Authorization header format. Expected 'Bearer <token>'");
+            };
 
             if access_token.is_empty() {
                 return HttpResponse::BadRequest().body("Access token is empty");

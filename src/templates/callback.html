@@ -7,22 +7,24 @@
     <body>
         <p>Ваш JWT токен: {{TOKEN}}</p>
         <script>
-            // Replace the URL to remove query parameters
+            console.log("Скрипт начал выполнение");
+
             window.history.replaceState(
                 {},
                 document.title,
                 window.location.pathname,
             );
 
-            // Function to get a cookie by name
             function getCookie(name) {
                 const value = "; " + document.cookie;
                 const parts = value.split("; " + name + "=");
                 if (parts.length === 2) return parts.pop().split(";").shift();
             }
 
-            // Fetch protected resource
+            console.log("Cookies:", document.cookie);
+
             const token = getCookie("access_token");
+            console.log("Извлеченный токен:", token);
 
             if (token) {
                 fetch("/api/v1/protected", {
@@ -31,52 +33,92 @@
                         Authorization: "Bearer " + token,
                     },
                 })
-                    .then((response) => response.text())
+                    .then((response) => {
+                        console.log("Ответ от protected:", response.status);
+                        return response.text();
+                    })
                     .then((data) => {
+                        console.log("Данные от protected:", data);
                         document.body.innerHTML += "<hr>" + data;
                     })
                     .catch((error) => {
+                        console.error("Ошибка protected:", error);
                         document.body.innerHTML +=
                             "<hr>" +
                             "Ошибка при получении защищённого ресурса: " +
                             error;
                     });
 
-                // Add Logout button
                 const logoutButton = document.createElement("button");
                 logoutButton.textContent = "Logout";
                 logoutButton.style.marginTop = "20px";
+                logoutButton.id = "logoutBtn"; // Добавляем ID для отладки
 
-                logoutButton.addEventListener("click", () => {
-                    fetch("/api/v1/logout", {
-                        method: "POST",
-                        headers: {
-                            Authorization: "Bearer " + token,
-                        },
-                    })
-                        .then((response) => {
-                            if (response.ok) {
-                                document.body.innerHTML +=
-                                    "<hr>Вы успешно вышли из системы.";
-                                document.cookie =
-                                    "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                                // Redirect to /login after successful logout
-                                window.location.href = "/login";
-                            } else {
-                                response.text().then((text) => {
-                                    document.body.innerHTML +=
-                                        "<hr>Ошибка при выходе: " + text;
-                                });
-                            }
+                logoutButton.onclick = function () {
+                    console.log("Кнопка выхода нажата!");
+                    try {
+                        console.log("Готовлюсь отправить запрос на выход");
+                        console.log("Токен для выхода:", token);
+
+                        fetch("/api/v1/logout", {
+                            method: "POST",
+                            headers: {
+                                Authorization: "Bearer " + token,
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "same-origin",
                         })
-                        .catch((error) => {
-                            document.body.innerHTML +=
-                                "<hr>Ошибка при выходе: " + error;
-                        });
-                });
+                            .then(function (response) {
+                                console.log(
+                                    "Ответ от logout:",
+                                    response.status,
+                                );
+
+                                if (response.ok) {
+                                    console.log("Выход успешен");
+                                    document.body.innerHTML +=
+                                        "<hr>Вы успешно вышли из системы.";
+                                    document.cookie =
+                                        "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                                    console.log(
+                                        "Cookie очищен, перенаправление...",
+                                    );
+                                    window.location.href = "/login";
+                                } else {
+                                    console.error(
+                                        "Ошибка, статус:",
+                                        response.status,
+                                    );
+                                    response.text().then(function (text) {
+                                        console.error("Текст ошибки:", text);
+                                        document.body.innerHTML +=
+                                            "<hr>Ошибка при выходе: " + text;
+                                    });
+                                }
+                            })
+                            .catch(function (error) {
+                                console.error("Ошибка запроса:", error);
+                                document.body.innerHTML +=
+                                    "<hr>Ошибка при выходе: " + error;
+                            });
+                    } catch (e) {
+                        console.error("Ошибка в обработчике:", e);
+                    }
+
+                    return false;
+                };
 
                 document.body.appendChild(logoutButton);
+                console.log("Кнопка выхода добавлена в DOM");
+
+                setTimeout(function () {
+                    console.log(
+                        "Проверяем наличие кнопки:",
+                        document.getElementById("logoutBtn"),
+                    );
+                }, 1000);
             } else {
+                console.warn("Токен не найден в cookie!");
                 document.body.innerHTML +=
                     "<hr>" + "Cookie access_token не найден.";
             }
